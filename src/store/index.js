@@ -1,0 +1,1 @@
+export {ideas} from './Ideas/reducer';
