@@ -2,7 +2,6 @@ import React from 'react';
 import { Modal, Form, Input, Select, Row, Col, Button, Card, Icon } from 'antd';
 import { connect } from 'react-redux';
 import idea from '../Idea/idea';
-import moment from 'moment';
 
 
 class Ideas extends React.Component {
@@ -22,7 +21,8 @@ class Ideas extends React.Component {
         owner: '',
         identificationDate: '',
         conclusionDate: ''
-      }
+      },
+      isFiltering: false
     }
 
     this.handleTitleInputChange = this.handleTitleInputChange.bind(this);
@@ -30,6 +30,7 @@ class Ideas extends React.Component {
     this.handleViabilityInputChange = this.handleViabilityInputChange.bind(this);
     this.handleOwnerInputChange = this.handleOwnerInputChange.bind(this);
     this.handleSituationInputChange = this.handleSituationInputChange.bind(this);
+    this.handleIdeaFilterInputChange = this.handleIdeaFilterInputChange.bind(this);
   }
 
   showModal = () => {
@@ -39,7 +40,6 @@ class Ideas extends React.Component {
   };
 
   clearData = () => {
-
     if (this.state.isEditing) {
       this.props.form.setFieldsValue({
         description: '',
@@ -91,11 +91,7 @@ class Ideas extends React.Component {
   handleCancel = () => {
     this.setState({ modalVisible: false });
 
-    if (this.state.isEditing) {
-      this.setState({ isEditing: false });
-      this.clearData();
-    }
-
+    // Reset idea state after close modal
     this.setState({
       idea: {
         id: '',
@@ -108,20 +104,16 @@ class Ideas extends React.Component {
         conclusionDate: ''
       }
     });
+
+    if (this.state.isEditing) {
+      this.setState({ isEditing: false });
+    }
+
+    this.clearData();
   }
 
   handleSubmit = () => {
-    // const payload = {
-    //   id: this.state.isEditing ? this.state.ideaEditingId : Math.floor(Math.random() * 1000),
-    //   title: this.props.form.getFieldValue('title'),
-    //   description: this.props.form.getFieldValue('description'),
-    //   viability: this.props.form.getFieldValue('viability'),
-    //   situation: this.props.form.getFieldValue('situation'),
-    //   owner: this.props.form.getFieldValue('owner'),
-    //   conclusionDate: (this.props.form.getFieldValue('situation') === "3" || this.props.form.getFieldValue('situation') === "4") ? moment().format('MMMM Do YYYY, h:mm:ss a') : ''
-    // };
     const payload = { ...this.state.idea };
-    // payload.conclusionDate = (this.state.idea.situation === "3" || this.state.idea.situation === "4") ? moment().format('MMMM Do YYYY, h:mm:ss a') : '';
 
     if (this.state.isEditing) {
       const currentIdentificationDate = this.props.ideas.find(idea => this.state.idea.id === idea.id).identificationDate;
@@ -135,9 +127,8 @@ class Ideas extends React.Component {
     }
 
     this.setState({ modalVisible: false });
-    this.clearData();
 
-    // Reset idea state
+    // Reset idea state after submit
     this.setState({
       idea: {
         id: '',
@@ -150,6 +141,8 @@ class Ideas extends React.Component {
         conclusionDate: ''
       }
     });
+
+    this.clearData();
   }
 
   handleEditIdea = (id) => {
@@ -158,20 +151,27 @@ class Ideas extends React.Component {
     const selectedIdea = { ...this.props.ideas.find(idea => idea.id === id) };
     this.setState({ idea: selectedIdea });
 
-    debugger;
-
     this.props.form.setFieldsValue({
       description: selectedIdea.description,
       viability: selectedIdea.viability,
-      situation: selectedIdea.situation,
-      // owner: this.state.idea.owner,
-      // identificationDate: this.state.idea.identificationDate,
-      // conclusionDate: (this.state.idea.situation === "3" || this.state.idea.situation === "4") ? moment().format('MMMM Do YYYY, h:mm:ss a') : ''
+      situation: selectedIdea.situation
     });
 
     this.setState({
       isEditing: true
     });
+  }
+
+  handleIdeaFilterInputChange = event => {
+    const searchText = event.target.value;
+
+    if (searchText !== '' && this.props.ideas.length > 0) {
+      this.setState({ isFiltering: true });
+      this.props.filterIdea(searchText);
+    }
+    else {
+      this.setState({ isFiltering: false });
+    }
   }
 
   render() {
@@ -193,11 +193,14 @@ class Ideas extends React.Component {
     const Idea = idea;
 
     const ideasCard = () => {
+      debugger;
+      const ideas = this.state.isFiltering ? this.props.filteredIdea : this.props.ideas;
+
       return (
         <div style={{ padding: "55px" }}>
           <Row gutter={16}>
             {
-              this.props.ideas.map(idea => {
+              ideas.map(idea => {
                 return (
                   <Col span={8} key={idea.id}>
                     <Card title={
@@ -225,162 +228,126 @@ class Ideas extends React.Component {
       );
     };
 
-    if (this.state.isEditing) {
+    const modalFormIdea = () => {
       return (
-        <>
-          <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
-            <Button type="primary" onClick={this.showModal} style={{ marginBottom: "10px", justifyContent: "center" }}>Create an idea</Button>
-          </div>
-
-          {ideasCard()}
-
-          <Modal
-            title={this.handleModalTitle}
-            visible={this.state.modalVisible}
-            onCancel={this.handleCancel}
-            footer={
-              <Button key="submit" type="primary" onClick={this.handleSubmit}>
-                Submit
-            </Button>
+        <Form {...formItemLayout}>
+          {
+            !this.state.isEditing ? (
+              <Form.Item label="Idea Title">
+                {
+                  getFieldDecorator('title', {
+                    rules: [{ required: true, message: 'Enter a title for idea' }]
+                  })(
+                    <Input type="text" placeholder="Idea title" onChange={this.handleTitleInputChange} />
+                  )
+                }
+              </Form.Item>
+            ) : null
+          }
+          <Form.Item label="Description">
+            {
+              getFieldDecorator('description', {
+                rules: [{ required: true, message: 'Enter a description for idea' }]
+              })(
+                <Input type="text" placeholder="Description of idea" onChange={this.handleDescriptionInputChange} />
+              )
             }
-          >
-            <Row>
-              <Col span={20}>
-                <Form {...formItemLayout}>
-                  <Form.Item label="Description">
-                    {
-                      getFieldDecorator('description', {
-                        rules: [{ required: true, message: 'Enter a description for idea' }]
-                      })(
-                        <Input type="text" placeholder="Description of idea" onChange={this.handleDescriptionInputChange} />
-                      )
-                    }
-                  </Form.Item>
-                  <Form.Item label="Viability">
-                    {
-                      getFieldDecorator('viability', {
-                        rules: [{ required: true }]
-                      })(
-                        <Select
-                          onChange={this.handleViabilityInputChange}>
-                          <Option value="1">1</Option>
-                          <Option value="2">2</Option>
-                          <Option value="3">3</Option>
-                          <Option value="4">4</Option>
-                          <Option value="5">5</Option>
-                        </Select>
-                      )
-                    }
-                  </Form.Item>
-                  <Form.Item label="Situation">
-                    {
-                      getFieldDecorator('situation', {
-                        rules: [{ required: true }]
-                      })(
-                        <Select
-                          onChange={this.handleSituationInputChange}>
-                          <Option value="1">Registrado</Option>
-                          <Option value="2">Em Desenvolvimento</Option>
-                          <Option value="3">Concluída</Option>
-                          <Option value="4">Cancelada</Option>
-                        </Select>
-                      )
-                    }
-                  </Form.Item>
-                </Form>
-              </Col>
-            </Row>
-          </Modal>
-        </>
+          </Form.Item>
+          <Form.Item label="Viability">
+            {
+              getFieldDecorator('viability', {
+                rules: [{ required: true }]
+              })(
+                <Select
+                  onChange={this.handleViabilityInputChange}>
+                  <Option value="1">1</Option>
+                  <Option value="2">2</Option>
+                  <Option value="3">3</Option>
+                  <Option value="4">4</Option>
+                  <Option value="5">5</Option>
+                </Select>
+              )
+            }
+          </Form.Item>
+          <Form.Item label="Situation">
+            {
+              getFieldDecorator('situation', {
+                rules: [{ required: true }]
+              })(
+                <Select
+                  onChange={this.handleSituationInputChange}>
+                  <Option value="1">Registrado</Option>
+                  <Option value="2">Em Desenvolvimento</Option>
+                  <Option value="3">Concluída</Option>
+                  <Option value="4">Cancelada</Option>
+                </Select>
+              )
+            }
+          </Form.Item>
+          {
+            !this.state.isEditing ? (
+              <Form.Item label="Owner">
+                {
+                  getFieldDecorator('owner', {
+                    rules: [{ required: true, message: 'Enter the owner of idea' }]
+                  })(
+                    <Input type="text" placeholder="Owner of idea" onChange={this.handleOwnerInputChange} />
+                  )
+                }
+              </Form.Item>
+            ) : null
+          }
+        </Form>
+      );
+    }
+
+    const filterFormIdea = () => {
+      return (
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <Form.Item>
+            {
+              getFieldDecorator('filterIdeaInput', {
+                rules: [{ required: false, message: 'Enter the title of idea' }]
+              })(
+                <Input type="text" placeholder="Find idea by title" onChange={this.handleIdeaFilterInputChange} />
+              )
+            }
+          </Form.Item>
+          {/* <Button type="primary" onClick={this.handleFilterIdea}>
+            Submit
+          </Button> */}
+        </div>
       )
     }
-    else {
-      return (
-        <>
-          <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
-            <Button type="primary" onClick={this.showModal} style={{ marginBottom: "10px", justifyContent: "center" }}>Create an idea</Button>
-          </div>
 
-          {ideasCard()}
+    return (
+      <>
+        {filterFormIdea()}
 
-          <Modal
-            title={this.handleModalTitle}
-            visible={this.state.modalVisible}
-            onCancel={this.handleCancel}
-            footer={
-              <Button key="submit" type="primary" onClick={this.handleSubmit}>
-                Submit
+        <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
+          <Button type="primary" onClick={this.showModal} style={{ marginBottom: "10px", justifyContent: "center" }}>Create an idea</Button>
+        </div>
+
+        {ideasCard()}
+
+        <Modal
+          title={this.handleModalTitle}
+          visible={this.state.modalVisible}
+          onCancel={this.handleCancel}
+          footer={
+            <Button key="submit" type="primary" onClick={this.handleSubmit}>
+              Submit
             </Button>
-            }
-          >
-            <Row>
-              <Col span={20}>
-                <Form {...formItemLayout}>
-                  <Form.Item label="Idea Title">
-                    {
-                      getFieldDecorator('title', {
-                        rules: [{ required: true, message: 'Enter a title for idea' }]
-                      })(
-                        <Input type="text" placeholder="Idea title" onChange={this.handleTitleInputChange} />
-                      )
-                    }
-                  </Form.Item>
-                  <Form.Item label="Description">
-                    {
-                      getFieldDecorator('description', {
-                        rules: [{ required: true, message: 'Enter a description for idea' }]
-                      })(
-                        <Input type="text" placeholder="Description of idea" onChange={this.handleDescriptionInputChange} />
-                      )
-                    }
-                  </Form.Item>
-                  <Form.Item label="Viability">
-                    {
-                      getFieldDecorator('viability', {
-                        rules: [{ required: true }]
-                      })(
-                        <Select
-                          onChange={this.handleViabilityInputChange}>
-                          <Option value="1">1</Option>
-                          <Option value="2">2</Option>
-                          <Option value="3">3</Option>
-                          <Option value="4">4</Option>
-                          <Option value="5">5</Option>
-                        </Select>
-                      )
-                    }
-                  </Form.Item>
-                  <Form.Item label="Situation">
-                    {
-                      getFieldDecorator('situation', {
-                        rules: [{ required: true }]
-                      })(
-                        <Select
-                          onChange={this.handleSituationInputChange}>
-                          <Option value="1">Registrado</Option>
-                          <Option value="2">Em Desenvolvimento</Option>
-                          <Option value="3">Concluída</Option>
-                          <Option value="4">Cancelada</Option>
-                        </Select>
-                      )
-                    }
-                  </Form.Item>
-                  <Form.Item label="Owner">
-                    {
-                      getFieldDecorator('owner', {
-                        rules: [{ required: true, message: 'Enter the owner of idea' }]
-                      })(
-                        <Input type="text" placeholder="Owner of idea" onChange={this.handleOwnerInputChange} />
-                      )
-                    }
-                  </Form.Item>
-                </Form>
-              </Col>
-            </Row>
-          </Modal>
-        </>
-      )
-    }
+          }
+        >
+          <Row>
+            <Col span={20}>
+              {modalFormIdea()}
+            </Col>
+          </Row>
+        </Modal>
+      </>
+    )
   }
 };
 
@@ -394,7 +361,8 @@ const mapDispatchToProps = dispatch => {
   return {
     addIdea: (payload) => dispatch({ type: "ADD_IDEA", payload: payload }),
     editIdea: (payload) => dispatch({ type: "EDIT_IDEA", payload: payload }),
-    removeIdea: (id) => dispatch({ type: "REMOVE_IDEA", payload: id })
+    removeIdea: (id) => dispatch({ type: "REMOVE_IDEA", payload: id }),
+    filterIdea: (title) => dispatch({ type: "FILTER_IDEA", payload: title })
   };
 }
 

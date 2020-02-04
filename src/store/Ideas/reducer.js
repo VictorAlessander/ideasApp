@@ -1,7 +1,8 @@
-import { ADD_IDEA, EDIT_IDEA, REMOVE_IDEA, addIdea, editIdea, removeIdea } from './action';
+import { ADD_IDEA, EDIT_IDEA, REMOVE_IDEA, FILTER_IDEA, addIdea, editIdea, removeIdea, filterIdea } from './action';
 
 const initialState = {
-  ideas: []
+  ideas: [],
+  filterIdea: []
 }
 
 const ideas = (state = initialState, action) => {
@@ -12,6 +13,8 @@ const ideas = (state = initialState, action) => {
       return editIdea(state, action.payload);
     case REMOVE_IDEA:
       return removeIdea(state, action.payload);
+    case FILTER_IDEA:
+      return filterIdea(state, action.payload);
     default:
       return state;
   }
