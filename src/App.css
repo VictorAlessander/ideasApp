@@ -1,8 +1,14 @@
 @import '~antd/dist/antd.css';
 
-.default-layout {
-  margin: auto;
-  width: 100%;
-  display: flex;
-  justify-content: center;
+.starredCardIdea {
+    background-color: rgb(221, 206, 113) !important;
+    width: 300px;
+    margin-bottom: 5px;
+    height: 321px;
+}
+
+.traditionalCardIdea {
+    width: 300px;
+    margin-bottom: 5px;
+    height: 321px;
 }

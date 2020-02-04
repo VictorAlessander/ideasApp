@@ -1,9 +1,15 @@
+import moment from 'moment';
+
 export const ADD_IDEA = 'ADD_IDEA';
 export const EDIT_IDEA = 'EDIT_IDEA';
 export const REMOVE_IDEA = 'REMOVE_IDEA';
 
 export const addIdea = (state, payload) => {
-  const idea = {...payload};
+  const idea = { ...payload };
+  idea.id = Math.floor(Math.random() * 1000);
+  idea.conclusionDate = (idea.situation === "3" || idea.situation === "4") ? moment().format('MMMM Do YYYY, h:mm:ss a') : '';
+
+  idea.identificationDate = moment().format('MMMM Do YYYY, h:mm:ss a');
 
   return {
     ideas: [...state.ideas.concat(idea)]
@@ -13,7 +19,7 @@ export const addIdea = (state, payload) => {
 export const editIdea = (state, payload) => {
   const ideaIndex = state.ideas.findIndex(idea => idea.id === payload.id);
 
-  debugger;
+  payload.conclusionDate = (payload.situation === "3" || payload.situation === "4") ? moment().format('MMMM Do YYYY, h:mm:ss a') : '';
 
   return {
     ...state,
@@ -22,9 +28,8 @@ export const editIdea = (state, payload) => {
 }
 
 export const removeIdea = (state, payload) => {
-  const ideaIndex = state.findIndex(idea => idea.id === payload);
-
   return {
-    ...state.ideas.splice(ideaIndex)
+    ...state,
+    ideas: [...state.ideas.filter(idea => idea.id !== payload)]
   };
 }

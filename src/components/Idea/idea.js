@@ -4,11 +4,11 @@ import React from 'react';
 const idea = (props) => {
   return (
     <>
-      <p>{props.description}</p>
-      <p>{props.viability}</p>
-      <p>{props.identificationDate}</p>
-      <p>{props.owner}</p>
-      <p>{props.conclusionDate}</p>
+      <p>Description: {props.description}</p>
+      <p>Viability: {props.viability}</p>
+      <p>Identification date: {props.identificationDate}</p>
+      <p>Owner: {props.owner}</p>
+      <p>Conclusion date: {props.conclusionDate}</p>
     </>
   )
 }

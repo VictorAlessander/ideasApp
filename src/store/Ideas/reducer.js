@@ -1,15 +1,7 @@
 import { ADD_IDEA, EDIT_IDEA, REMOVE_IDEA, addIdea, editIdea, removeIdea } from './action';
 
 const initialState = {
-  ideas: [],
-  // idea: {
-  //   title: '',
-  //   description: '',
-  //   viability: '',
-  //   identificationDate: '',
-  //   owner: '',
-  //   conclusionDate: ''
-  // }
+  ideas: []
 }
 
 const ideas = (state = initialState, action) => {
