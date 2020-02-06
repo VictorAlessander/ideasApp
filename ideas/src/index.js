@@ -6,7 +6,7 @@ import * as serviceWorker from './serviceWorker';
 import { createStore, compose, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import ideas from './store/Ideas/reducer';
-import { createSagaMiddleware } from 'redux-saga';
+import createSagaMiddleware from 'redux-saga';
 import rootSaga from './sagas';
 
 
@@ -15,9 +15,13 @@ let middlewares = applyMiddleware(sagaMiddleware);
 
 const store = createStore(
   ideas,
-  compose(middlewares),
-  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+  compose(
+    middlewares,
+    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+    )
 );
+
+sagaMiddleware.run(rootSaga);
 
 ReactDOM.render(
   <Provider store={store}>

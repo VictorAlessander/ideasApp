@@ -2,7 +2,8 @@ import React from 'react';
 import { Modal, Form, Input, Select, Row, Col, Button, Card, Icon } from 'antd';
 import { connect } from 'react-redux';
 import idea from '../Idea/idea';
-
+import { fetchIdeas } from '../../store/Ideas/action';
+import * as situations from '../../constants/Ideas/ideas';
 
 class Ideas extends React.Component {
 
@@ -32,6 +33,10 @@ class Ideas extends React.Component {
     this.handleSituationInputChange = this.handleSituationInputChange.bind(this);
     this.handleIdeaFilterInputChange = this.handleIdeaFilterInputChange.bind(this);
   }
+
+  // componentDidMount () {
+  //   this.props.fetchIdeas();
+  // };
 
   showModal = () => {
     this.setState({
@@ -149,6 +154,7 @@ class Ideas extends React.Component {
     this.showModal();
 
     const selectedIdea = { ...this.props.ideas.find(idea => idea.id === id) };
+
     this.setState({ idea: selectedIdea });
 
     this.props.form.setFieldsValue({
@@ -174,7 +180,7 @@ class Ideas extends React.Component {
     }
   }
 
-  render() {
+  render () {
 
     const formItemLayout = {
       labelCol: {
@@ -193,7 +199,6 @@ class Ideas extends React.Component {
     const Idea = idea;
 
     const ideasCard = () => {
-      debugger;
       const ideas = this.state.isFiltering ? this.props.filteredIdea : this.props.ideas;
 
       return (
@@ -209,12 +214,13 @@ class Ideas extends React.Component {
                         <a style={{ marginLeft: "5px" }}><Icon onClick={() => this.handleEditIdea(idea.id)} type="edit" /></a>
                         <a style={{ float: "right" }}><Icon onClick={() => this.props.removeIdea(idea.id)} type="delete" /></a>
                       </span>
-                    } bordered={false} className={idea.viability == 5 ? "starredCardIdea" : "traditionalCardIdea"} key={idea.id}>
+                    } bordered={false} className={idea.viability === "5" ? "starredCardIdea" : "traditionalCardIdea"} key={idea.id}>
                       <Idea
                         key={idea.id}
                         description={idea.description}
                         viability={idea.viability}
                         identificationDate={idea.identificationDate}
+                        situation={idea.situation}
                         owner={idea.owner}
                         conclusionDate={idea.conclusionDate}
                       />
@@ -276,10 +282,10 @@ class Ideas extends React.Component {
               })(
                 <Select
                   onChange={this.handleSituationInputChange}>
-                  <Option value="1">Registrado</Option>
-                  <Option value="2">Em Desenvolvimento</Option>
-                  <Option value="3">Concluída</Option>
-                  <Option value="4">Cancelada</Option>
+                  <Option value="1">{situations.REGISTRADO}</Option>
+                  <Option value="2">{situations.UNDER_DEVELOPMENT}</Option>
+                  <Option value="3">{situations.FINISHED}</Option>
+                  <Option value="4">{situations.CANCELLED}</Option>
                 </Select>
               )
             }
@@ -309,13 +315,10 @@ class Ideas extends React.Component {
               getFieldDecorator('filterIdeaInput', {
                 rules: [{ required: false, message: 'Enter the title of idea' }]
               })(
-                <Input type="text" placeholder="Find idea by title" onChange={this.handleIdeaFilterInputChange} />
+                <Input type="text" placeholder="Find idea by title" onChange={this.handleIdeaFilterInputChange} disabled={this.props.ideas.length === 0} />
               )
             }
           </Form.Item>
-          {/* <Button type="primary" onClick={this.handleFilterIdea}>
-            Submit
-          </Button> */}
         </div>
       )
     }
@@ -362,7 +365,8 @@ const mapDispatchToProps = dispatch => {
     addIdea: (payload) => dispatch({ type: "ADD_IDEA", payload: payload }),
     editIdea: (payload) => dispatch({ type: "EDIT_IDEA", payload: payload }),
     removeIdea: (id) => dispatch({ type: "REMOVE_IDEA", payload: id }),
-    filterIdea: (title) => dispatch({ type: "FILTER_IDEA", payload: title })
+    filterIdea: (title) => dispatch({ type: "FILTER_IDEA", payload: title }),
+    fetchIdeas: () => dispatch({ type: "FETCH_IDEAS" })
   };
 }
 
