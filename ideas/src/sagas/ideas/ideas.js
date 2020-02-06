@@ -1,6 +1,7 @@
-import { put, takeEvery, call, takeLatest } from 'redux-saga/effects';
+import { put, takeEvery, call } from 'redux-saga/effects';
 import axios from 'axios';
 import { BASE_URL, IDEAS_URL } from '../../constants/api';
+import moment from 'moment';
 
 function* fetchIdeas () {
     const response = yield call(fetchIdeasApi)
@@ -15,10 +16,15 @@ export function* watchFetchIdeas () {
     yield takeEvery('FETCH_IDEAS', fetchIdeas);
 };
 
-// function* createIdea (payload) {
-//     yield put({ type: "ADD_IDEA", payload: payload });
-// }
+function createIdeaApi(payload) {
+    return axios.post(BASE_URL + IDEAS_URL, payload).then(res => res.data);
+}
 
-// export function* watchCreateIdea () {
-//     yield takeEvery('ADD_IDEA', createIdea);
-// }
+function* createIdea (payload) {
+    const response = yield call(createIdeaApi, payload.idea);
+    yield put({ type: "ADD_IDEA", payload: payload.idea });
+}
+
+export function* watchCreateIdea () {
+    yield takeEvery('CREATE_IDEA', createIdea);
+}   

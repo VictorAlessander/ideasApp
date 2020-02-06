@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import idea from '../Idea/idea';
 import { fetchIdeas } from '../../store/Ideas/action';
 import * as situations from '../../constants/Ideas/ideas';
+import moment from 'moment';
 
 class Ideas extends React.Component {
 
@@ -34,11 +35,12 @@ class Ideas extends React.Component {
     this.handleIdeaFilterInputChange = this.handleIdeaFilterInputChange.bind(this);
   }
 
-  // componentDidMount () {
-  //   this.props.fetchIdeas();
-  // };
+  componentDidMount() {
+    this.props.fetchIdeas();
+  };
 
   showModal = () => {
+    this.props.form.validateFields();
     this.setState({
       modalVisible: true
     });
@@ -117,8 +119,20 @@ class Ideas extends React.Component {
     this.clearData();
   }
 
+  hasErrors = (fieldsError) => {
+    return Object.keys(fieldsError).some(field => fieldsError[field]);
+  }
+
   handleSubmit = () => {
-    const payload = { ...this.state.idea };
+    const payload = {
+      title: this.state.idea.title,
+      description: this.state.idea.description,
+      identificationDate: undefined,
+      viability: this.state.idea.viability,
+      situation: this.state.idea.situation,
+      owner: this.state.idea.owner,
+      conclusionDate: (idea.situation === "3" || idea.situation === "4") ? moment().format('YYYY-MM-DD hh:mm:ss') : null
+    };
 
     if (this.state.isEditing) {
       const currentIdentificationDate = this.props.ideas.find(idea => this.state.idea.id === idea.id).identificationDate;
@@ -128,7 +142,8 @@ class Ideas extends React.Component {
       this.setState({ isEditing: false });
     }
     else {
-      this.props.addIdea(payload);
+      payload.identificationDate = moment().format('YYYY-MM-DD hh:mm:ss');
+      this.props.createIdea({ idea: payload });
     }
 
     this.setState({ modalVisible: false });
@@ -180,7 +195,7 @@ class Ideas extends React.Component {
     }
   }
 
-  render () {
+  render() {
 
     const formItemLayout = {
       labelCol: {
@@ -193,7 +208,7 @@ class Ideas extends React.Component {
       },
     };
 
-    const { getFieldDecorator } = this.props.form;
+    const { getFieldDecorator, getFieldsError } = this.props.form;
     const Option = Select.Option;
 
     const Idea = idea;
@@ -219,10 +234,16 @@ class Ideas extends React.Component {
                         key={idea.id}
                         description={idea.description}
                         viability={idea.viability}
-                        identificationDate={idea.identificationDate}
+                        identificationDate={moment(idea.identificationDate).format("MMMM Do YYYY, h:mm:ss a")}
                         situation={idea.situation}
                         owner={idea.owner}
-                        conclusionDate={idea.conclusionDate}
+                        conclusionDate={
+                          idea.conclusionDate
+                          ?
+                          moment(idea.conclusionDate).format("MMMM Do YYYY, h:mm:ss a")
+                          :
+                          ""
+                        }
                       />
                     </Card>
                   </Col>
@@ -338,7 +359,7 @@ class Ideas extends React.Component {
           visible={this.state.modalVisible}
           onCancel={this.handleCancel}
           footer={
-            <Button key="submit" type="primary" onClick={this.handleSubmit}>
+            <Button key="submit" type="primary" onClick={this.handleSubmit} disabled={this.hasErrors(getFieldsError())}>
               Submit
             </Button>
           }
@@ -362,11 +383,11 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    addIdea: (payload) => dispatch({ type: "ADD_IDEA", payload: payload }),
     editIdea: (payload) => dispatch({ type: "EDIT_IDEA", payload: payload }),
     removeIdea: (id) => dispatch({ type: "REMOVE_IDEA", payload: id }),
     filterIdea: (title) => dispatch({ type: "FILTER_IDEA", payload: title }),
-    fetchIdeas: () => dispatch({ type: "FETCH_IDEAS" })
+    fetchIdeas: () => dispatch({ type: "FETCH_IDEAS" }),
+    createIdea: (payload) => dispatch({ type: "CREATE_IDEA", ...payload })
   };
 }
 

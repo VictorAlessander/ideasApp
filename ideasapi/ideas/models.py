@@ -6,8 +6,8 @@ class Idea(models.Model):
   viability = models.IntegerField()
   situation = models.IntegerField()
   owner = models.CharField(max_length=30, blank=True)
-  identification_date = models.DateTimeField(null=False, blank=False)
-  conclusion_date = models.DateTimeField(null=True, blank=True)
+  identification_date = models.DateTimeField(null=False, blank=False, name="identificationDate")
+  conclusion_date = models.DateTimeField(null=True, blank=True, name="conclusionDate")
 
   def __str__(self):
     return self.title

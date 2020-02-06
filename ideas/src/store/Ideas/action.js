@@ -6,15 +6,13 @@ export const REMOVE_IDEA = 'REMOVE_IDEA';
 export const FILTER_IDEA = 'FILTER_IDEA';
 export const RETRIEVED_IDEAS = 'RETRIEVED_IDEAS';
 export const fetchIdeas = () => ({ type: 'FETCH_IDEAS' });
+export const createIdea = () => ({ type: 'CREATE_IDEA' });
 
 export const addIdea = (state, payload) => {
   const idea = { ...payload };
-  // idea.id = Math.floor(Math.random() * 1000);
-  idea.conclusionDate = (idea.situation === "3" || idea.situation === "4") ? moment().format('MMMM Do YYYY, h:mm:ss a') : '';
-
-  idea.identificationDate = moment().format('MMMM Do YYYY, h:mm:ss a');
 
   return {
+    ...state,
     ideas: [...state.ideas.concat(idea)]
   }
 };
