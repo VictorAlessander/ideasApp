@@ -35,7 +35,7 @@ class Ideas extends React.Component {
     this.handleIdeaFilterInputChange = this.handleIdeaFilterInputChange.bind(this);
   }
 
-  componentDidMount() {
+  componentDidMount () {
     this.props.fetchIdeas();
   };
 
@@ -131,14 +131,15 @@ class Ideas extends React.Component {
       viability: this.state.idea.viability,
       situation: this.state.idea.situation,
       owner: this.state.idea.owner,
-      conclusionDate: (idea.situation === "3" || idea.situation === "4") ? moment().format('YYYY-MM-DD hh:mm:ss') : null
+      conclusionDate: (this.state.idea.situation === 3 || this.state.idea.situation === 4) ? moment().format('YYYY-MM-DD hh:mm:ss') : null
     };
 
     if (this.state.isEditing) {
       const currentIdentificationDate = this.props.ideas.find(idea => this.state.idea.id === idea.id).identificationDate;
       payload.identificationDate = currentIdentificationDate;
+      payload.id = this.state.idea.id;
 
-      this.props.editIdea(payload);
+      this.props.modifyIdea({idea: payload});
       this.setState({ isEditing: false });
     }
     else {
@@ -195,7 +196,7 @@ class Ideas extends React.Component {
     }
   }
 
-  render() {
+  render () {
 
     const formItemLayout = {
       labelCol: {
@@ -227,9 +228,9 @@ class Ideas extends React.Component {
                       <span>
                         {idea.title}
                         <a style={{ marginLeft: "5px" }}><Icon onClick={() => this.handleEditIdea(idea.id)} type="edit" /></a>
-                        <a style={{ float: "right" }}><Icon onClick={() => this.props.removeIdea(idea.id)} type="delete" /></a>
+                        <a style={{ float: "right" }}><Icon onClick={() => this.props.deleteIdea({ id: idea.id })} type="delete" /></a>
                       </span>
-                    } bordered={false} className={idea.viability === "5" ? "starredCardIdea" : "traditionalCardIdea"} key={idea.id}>
+                    } bordered={false} className={idea.viability === 5 ? "starredCardIdea" : "traditionalCardIdea"} key={idea.id}>
                       <Idea
                         key={idea.id}
                         description={idea.description}
@@ -239,10 +240,10 @@ class Ideas extends React.Component {
                         owner={idea.owner}
                         conclusionDate={
                           idea.conclusionDate
-                          ?
-                          moment(idea.conclusionDate).format("MMMM Do YYYY, h:mm:ss a")
-                          :
-                          ""
+                            ?
+                            moment(idea.conclusionDate).format("MMMM Do YYYY, h:mm:ss a")
+                            :
+                            ""
                         }
                       />
                     </Card>
@@ -287,11 +288,11 @@ class Ideas extends React.Component {
               })(
                 <Select
                   onChange={this.handleViabilityInputChange}>
-                  <Option value="1">1</Option>
-                  <Option value="2">2</Option>
-                  <Option value="3">3</Option>
-                  <Option value="4">4</Option>
-                  <Option value="5">5</Option>
+                  <Option value={1}>1</Option>
+                  <Option value={2}>2</Option>
+                  <Option value={3}>3</Option>
+                  <Option value={4}>4</Option>
+                  <Option value={5}>5</Option>
                 </Select>
               )
             }
@@ -303,10 +304,10 @@ class Ideas extends React.Component {
               })(
                 <Select
                   onChange={this.handleSituationInputChange}>
-                  <Option value="1">{situations.REGISTRADO}</Option>
-                  <Option value="2">{situations.UNDER_DEVELOPMENT}</Option>
-                  <Option value="3">{situations.FINISHED}</Option>
-                  <Option value="4">{situations.CANCELLED}</Option>
+                  <Option value={1}>{situations.REGISTERED}</Option>
+                  <Option value={2}>{situations.UNDER_DEVELOPMENT}</Option>
+                  <Option value={3}>{situations.FINISHED}</Option>
+                  <Option value={4}>{situations.CANCELLED}</Option>
                 </Select>
               )
             }
@@ -383,11 +384,11 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    editIdea: (payload) => dispatch({ type: "EDIT_IDEA", payload: payload }),
-    removeIdea: (id) => dispatch({ type: "REMOVE_IDEA", payload: id }),
     filterIdea: (title) => dispatch({ type: "FILTER_IDEA", payload: title }),
     fetchIdeas: () => dispatch({ type: "FETCH_IDEAS" }),
-    createIdea: (payload) => dispatch({ type: "CREATE_IDEA", ...payload })
+    createIdea: (payload) => dispatch({ type: "CREATE_IDEA", ...payload }),
+    deleteIdea: (payload) => dispatch({ type: "DELETE_IDEA", id: payload.id }),
+    modifyIdea: (payload) => dispatch({ type: "MODIFY_IDEA", ...payload })
   };
 }
 
